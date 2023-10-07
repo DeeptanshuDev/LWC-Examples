@@ -1,0 +1,94 @@
+//Calling Child Component Method from Parent Component.
+
+
+//For this we can use reference(ref) on Parent and call call child method on Parent controller
+//Parent:
+<template>
+    <lightning-quick-action-panel header="Task Manager">
+        //lwc:ref - we are creating a reference of child
+        <c-create-task lwc:ref="createToDO" target-parent={isAction}></c-create-task>
+
+        <div slot="footer">
+            <lightning-button variant="neutral" label="Cancel" onclick={closeAction}></lightning-button>
+            <lightning-button variant="brand" label="Save" onclick={handleClick}
+                class="slds-m-left_small"></lightning-button>
+        </div>
+    </lightning-quick-action-panel>
+</template>
+import { LightningElement } from 'lwc';
+import { CloseActionScreenEvent } from "lightning/actions";
+
+export default class CreateTaskAction extends LightningElement {
+    isAction = true;
+
+    handleClick(){
+        //calling the child method 
+        this.refs.createToDO.handleParentClick();
+    }
+    closeAction(){
+        this.dispatchEvent(new CloseActionScreenEvent());
+    }
+}
+
+//Child
+<template>
+    <lightning-card>
+        <h3 slot="title">
+            <lightning-icon icon-name="utility:connected_apps" size="small"></lightning-icon>
+            Create Task
+        </h3>
+        <div class="slds-m-top_medium slds-m-bottom_x-large">
+
+            <!-- Default/basic -->
+            <div class="slds-p-around_medium lgc-bg">
+                <lightning-input type="text" name="taskTitle" label="Task Title" value={taskTitle}
+                    onchange={handleOnChange} required></lightning-input>
+                <template lwc:if={showDueDate}>
+                    <lightning-input type="date" name="dueDate" label="Due Date" value={dueDate}
+                        onchange={handleOnChange} required></lightning-input>
+                </template>
+                <br />
+                <template lwc:if={showSave}>
+                    <lightning-button variant="success" label="Save Task" title="Save Task" onclick={handleClick}
+                        class="slds-m-left_x-small makeItTransparent"></lightning-button>
+                </template>
+            </div>
+        </div>
+    </lightning-card>
+</template>
+import { LightningElement, api } from 'lwc';
+
+export default class CreateTask extends LightningElement {
+    taskTitle;
+    dueDate;
+    showDueDate =false;
+    showSave = false;
+    @api targetParent;
+
+    connectedCallback() {
+        //console.log('target parent : ' + this.targetParent);
+    }
+
+    handleOnChange(event){
+        const fieldName = event.target.name;
+        if(fieldName == 'taskTitle'){
+            this.taskTitle = event.target.value;
+            if(this.taskTitle != ''){
+                this.showDueDate = true;
+            } else{
+                this.showDueDate = false;
+            }
+        } else if(fieldName == 'dueDate'){
+            this.dueDate = event.target.value;
+            this.dueDate != "" && this.targetParent != true ? (this.showSave = true) : (this.showSave = false);
+        }
+    }
+
+    handleClick(){
+        console.log('You are great');
+    }
+
+    @api handleParentClick() {
+        this.handleClick();
+    }
+}
